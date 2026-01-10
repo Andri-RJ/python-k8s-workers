@@ -5,7 +5,7 @@ on:
     branches: [ master, main ]
     paths:
       - 'worker-1/**'
-      # ENLEVÉ : '.github/workflows/worker-1.yml'
+      # ENLEV : '.github/workflows/worker-1.yml'
   workflow_dispatch:
 
 env:
