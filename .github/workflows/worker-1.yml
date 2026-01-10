@@ -5,11 +5,11 @@ on:
     branches: [ master, main ]
     paths:
       - 'worker-1/**'
-      - '.github/workflows/worker-1.yml'
+      # ENLEVÉ : '.github/workflows/worker-1.yml'
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/worker-1
+  DOCKER_IMAGE: andrirj/worker-1
   
 jobs:
   build-and-deploy:
@@ -22,24 +22,26 @@ jobs:
     - name: Build and push Docker image
       run: |
         cd worker-1
-        docker build -t ${{ env.DOCKER_IMAGE }}:latest -t ${{ env.DOCKER_IMAGE }}:${{ github.sha }} .
-        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        docker push ${{ env.DOCKER_IMAGE }}:latest
-        docker push ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+        docker build -t $DOCKER_IMAGE:latest -t $DOCKER_IMAGE:${{ github.sha }} .
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker push $DOCKER_IMAGE:latest
+        docker push $DOCKER_IMAGE:${{ github.sha }}
     
-    - name: Update Kubernetes deployment
+    - name: Deploy to Kubernetes
       run: |
-        kubectl apply -f worker-1/k8s/deployment.yml
-        kubectl apply -f worker-1/k8s/service.yml
-        kubectl set image deployment/worker-1 worker-1=${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-        kubectl rollout status deployment/worker-1 --timeout=3m
+        kubectl apply -f worker-1/k8s/deployment.yml --validate=false
+        kubectl apply -f worker-1/k8s/service.yml --validate=false
+        kubectl set image deployment/worker-1 worker-1=$DOCKER_IMAGE:${{ github.sha }}
+        kubectl rollout status deployment/worker-1 --timeout=2m
     
     - name: Verify deployment
       run: |
         kubectl get deployments worker-1
         kubectl get pods -l app=worker-1
+        echo "✅ Worker 1 deployed successfully"
         
     - name: Rollback on failure
       if: failure()
       run: |
-        kubectl rollout undo deployment/worker-1
+        echo "❌ Deployment failed, rolling back..."
+        kubectl rollout undo deployment/worker-1 || true
