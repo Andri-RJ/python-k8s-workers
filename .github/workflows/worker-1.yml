@@ -29,7 +29,7 @@ jobs:
     - name: Deploy to Kubernetes
       run: |
         kubectl set image deployment/worker-1 worker-1=$DOCKER_IMAGE:${{ github.sha }}
-        kubectl rollout status deployment/worker-1 --timeout=4m
+        kubectl rollout status deployment/worker-1 --timeout=10m
         
     - name: Verify deployment
       run: |
