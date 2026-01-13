@@ -71,7 +71,7 @@ HTML_TEMPLATE = """
 <body>
     <div class="container">
         <h1>🚀 Worker 1</h1>
-        <p class="subtitle">Site Vitrine - CI/CD avec Kubernetes</p>
+        <p class="subtitle">Site - CI/CD avec Kubernetes</p>
         
         <div class="info-box">
             <p><strong>Version:</strong> {{ version }}</p>
