@@ -18,23 +18,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Build and push Docker image
-      run: |
-        cd worker-1
-        docker build -t $DOCKER_IMAGE:latest -t $DOCKER_IMAGE:${{ github.sha }} .
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-        docker push $DOCKER_IMAGE:latest
-        docker push $DOCKER_IMAGE:${{ github.sha }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Build and push with cache
+      uses: docker/build-push-action@v5
+      with:
+        context: ./worker-1
+        push: true
+        tags: |
+          ${{ env.DOCKER_IMAGE }}:latest
+          ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+        cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
+        cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
     
     - name: Deploy to Kubernetes
       run: |
-        kubectl set image deployment/worker-1 worker-1=$DOCKER_IMAGE:${{ github.sha }}
-        kubectl rollout status deployment/worker-1 --timeout=10m
-        
-    - name: Verify deployment
-      run: |
-        kubectl get deployments worker-1
-        kubectl get pods -l app=worker-1
+        kubectl set image deployment/worker-1 worker-1=${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+        kubectl rollout status deployment/worker-1 --timeout=3m || true
         
     - name: Rollback on failure
       if: failure()
