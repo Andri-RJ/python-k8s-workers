@@ -30,7 +30,7 @@ HTML_TEMPLATE = """
         .container {
             text-align: center;
             padding: 3rem;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,0,0.1);
             border-radius: 20px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
