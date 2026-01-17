@@ -20,7 +20,7 @@ HTML_TEMPLATE = """
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            background: linear-gradient(135deg, #8e5a2b 0%, #a47e22 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
